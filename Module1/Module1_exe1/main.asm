@@ -97,9 +97,9 @@ freq2parte:
 			ret
 
 incrementa:
-			inc 	R8
+			inc 	R8			;incremento R8 quando encontro o menor elemento guardado em R7
 
-			jmp		freq2parte
+			jmp		freq2parte	;retorno a subrotina
 			nop
 
 ;-------------------------------------------------------------------------------

@@ -120,34 +120,34 @@ endif
 
 # Add inputs and outputs from these tool invocations to the build variables 
 EXE_OUTPUTS += \
-Module1.out \
+Module1Exe1.out \
 
 EXE_OUTPUTS__QUOTED += \
-"Module1.out" \
+"Module1Exe1.out" \
 
 BIN_OUTPUTS += \
-Module1.hex \
+Module1Exe1.hex \
 
 BIN_OUTPUTS__QUOTED += \
-"Module1.hex" \
+"Module1Exe1.hex" \
 
 
 # All Target
 all: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
-	@$(MAKE) --no-print-directory -Onone "Module1.out"
+	@$(MAKE) --no-print-directory -Onone "Module1Exe1.out"
 
 # Tool invocations
-Module1.out: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
+Module1Exe1.out: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
 	@echo 'Building target: "$@"'
 	@echo 'Invoking: MSP430 Linker'
-	"/home/estevamalbuquerque/ti/ccsv8/tools/compiler/ti-cgt-msp430_18.1.4.LTS/bin/cl430" -vmspx --code_model=small --data_model=small --use_hw_mpy=F5 --advice:power=all --advice:hw_config=all --define=__MSP430FR5994__ --define=_MPU_ENABLE -g --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 -z -m"Module1.map" --heap_size=0 --stack_size=0 --cinit_hold_wdt=on -i"/home/estevamalbuquerque/ti/ccsv8/ccs_base/msp430/include" -i"/home/estevamalbuquerque/ti/ccsv8/ccs_base/msp430/lib/5xx_6xx_FRxx" -i"/home/estevamalbuquerque/ti/ccsv8/ccs_base/msp430/lib/FR59xx" -i"/home/estevamalbuquerque/ti/ccsv8/tools/compiler/ti-cgt-msp430_18.1.4.LTS/lib" -i"/home/estevamalbuquerque/ti/ccsv8/tools/compiler/ti-cgt-msp430_18.1.4.LTS/include" --priority --reread_libs --define=_MPU_ENABLE --diag_wrap=off --display_error_number --warn_sections --xml_link_info="Module1_linkInfo.xml" --entry_point=RESET --use_hw_mpy=F5 -o "Module1.out" $(ORDERED_OBJS)
+	"/home/estevamalbuquerque/ti/ccsv8/tools/compiler/ti-cgt-msp430_18.1.4.LTS/bin/cl430" -vmspx --code_model=small --data_model=small --use_hw_mpy=F5 --advice:power=all --advice:hw_config=all --define=__MSP430FR5994__ --define=_MPU_ENABLE -g --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 -z -m"Module1Exe1.map" --heap_size=0 --stack_size=0 --cinit_hold_wdt=on -i"/home/estevamalbuquerque/ti/ccsv8/ccs_base/msp430/include" -i"/home/estevamalbuquerque/ti/ccsv8/ccs_base/msp430/lib/5xx_6xx_FRxx" -i"/home/estevamalbuquerque/ti/ccsv8/ccs_base/msp430/lib/FR59xx" -i"/home/estevamalbuquerque/ti/ccsv8/tools/compiler/ti-cgt-msp430_18.1.4.LTS/lib" -i"/home/estevamalbuquerque/ti/ccsv8/tools/compiler/ti-cgt-msp430_18.1.4.LTS/include" --priority --reread_libs --define=_MPU_ENABLE --diag_wrap=off --display_error_number --warn_sections --xml_link_info="Module1Exe1_linkInfo.xml" --entry_point=RESET --use_hw_mpy=F5 -o "Module1Exe1.out" $(ORDERED_OBJS)
 	@echo 'Finished building target: "$@"'
 	@echo ' '
 
-Module1.hex: $(EXE_OUTPUTS)
+Module1Exe1.hex: $(EXE_OUTPUTS)
 	@echo 'Building files: $(strip $(EXE_OUTPUTS__QUOTED))'
 	@echo 'Invoking: MSP430 Hex Utility'
-	"/home/estevamalbuquerque/ti/ccsv8/tools/compiler/ti-cgt-msp430_18.1.4.LTS/bin/hex430" --memwidth=8 --romwidth=8 -o "Module1.hex" $(EXE_OUTPUTS__QUOTED)
+	"/home/estevamalbuquerque/ti/ccsv8/tools/compiler/ti-cgt-msp430_18.1.4.LTS/bin/hex430" --memwidth=8 --romwidth=8 -o "Module1Exe1.hex" $(EXE_OUTPUTS__QUOTED)
 	@echo 'Finished building: $(strip $(EXE_OUTPUTS__QUOTED))'
 	@echo ' '
 

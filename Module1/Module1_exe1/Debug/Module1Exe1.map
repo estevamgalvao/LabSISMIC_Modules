@@ -1,9 +1,9 @@
 ******************************************************************************
                   MSP430 Linker Unix v18.1.4                   
 ******************************************************************************
->> Linked Mon Apr  1 14:49:31 2019
+>> Linked Mon Apr  1 14:57:15 2019
 
-OUTPUT FILE NAME:   <Module1.out>
+OUTPUT FILE NAME:   <Module1Exe1.out>
 ENTRY POINT SYMBOL: "RESET"  address: 00004000
 
 
@@ -17,7 +17,7 @@ MEMORY CONFIGURATION
   INFOC                 00001880   00000080  00000000  00000080  RWIX
   INFOB                 00001900   00000080  00000000  00000080  RWIX
   INFOA                 00001980   00000080  00000000  00000080  RWIX
-  RAM                   00001c00   00001000  00000022  00000fde  RWIX
+  RAM                   00001c00   00001000  00000007  00000ff9  RWIX
   LEARAM                00002c00   00000ec8  00000000  00000ec8  RWIX
   LEASTACK              00003ac8   00000138  00000000  00000138  RWIX
   FRAM                  00004000   0000bf80  00000060  0000bf20  RWIX
@@ -120,8 +120,8 @@ section   page    origin      length       input sections
 .text      0    00004000    00000058     
                   00004000    00000058     main.obj (.text)
 
-.data      0    00001c00    00000022     
-                  00001c00    00000022     main.obj (.data)
+.data      0    00001c00    00000007     
+                  00001c00    00000007     main.obj (.data)
 
 .stack     0    00002c00    00000000     
 
@@ -265,9 +265,9 @@ MODULE SUMMARY
        Module             code   ro data   rw data
        ------             ----   -------   -------
     ./
-       main.obj           88     2         34     
+       main.obj           88     2         7      
     +--+------------------+------+---------+---------+
-       Total:             88     2         34     
+       Total:             88     2         7      
                                                   
     /home/estevamalbuquerque/ti/ccsv8/tools/compiler/ti-cgt-msp430_18.1.4.LTS/lib/rts430x_sc_sd_eabi.lib
        isr_trap.asm.obj   8      0         0      
@@ -312,7 +312,7 @@ MODULE SUMMARY
        Total:             8      74        0      
                                                   
     +--+------------------+------+---------+---------+
-       Grand Total:       96     76        34     
+       Grand Total:       96     76        7      
 
 
 GLOBAL SYMBOLS: SORTED ALPHABETICALLY BY Name 
