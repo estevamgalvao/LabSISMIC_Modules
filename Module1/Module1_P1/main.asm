@@ -17,7 +17,7 @@
 
 ;-------------------------------------------------------------------------------
 RESET       mov.w   #__STACK_END,SP         ; Initialize stackpointer
-StopWDT     mov.w   #WDTPW|WDTHOLD,&WDTCTL  ; Stop watchdog timer
+StopWDT     mov.w   #WDTPW|WDTHOLD,&WDTCTL  ; Stop watchdog timer5
 
 ;-------------------------------------------------------------------------------
 ; DATA
@@ -51,8 +51,8 @@ majorloop:
 			mov.b		#0, R9		;R9 será minha flag -> "0" para nenhuma troca foi feita
 
 
-			mov.b		#vetor, R5 	;faço R5 apontar para o início do vetor, no caso, seu tamanho
-			mov.b		#vetor, R8	;inicio R8
+			mov			#vetor, R5 	;faço R5 apontar para o início do vetor, no caso, seu tamanho
+			mov			#vetor, R8	;inicio R8
 			mov.b		@R5, R6		;guardo o tamanho do vetor em R6
 
 			dec			R6			;decremento R6 para evitar que R8 aponte para fora do vetor
@@ -64,9 +64,9 @@ majorloop:
 			nop
 
 ordena:
-			cmp.b		@R5, 0(R8)	;comparo R5 com R8
+			cmp.b		@R8, 0(R5)	;comparo R8 com R5
 
-			jhs			troca		;caso R8 for maior que R5, quero troca-los de posição
+			jhs			troca		;caso R5 for maior que R8, quero troca-los de posição
 			nop
 
 ordena2parte:
@@ -81,11 +81,11 @@ ordena2parte:
 			nop
 
 troca:
-			mov.b		@R5, R7		;variável auxiliar para não perder o valor de R5 no meio da troca
+			mov.b		@R5, R7			;variável auxiliar para não perder o valor de R5 no meio da troca
 			mov.b		@R8, 0(R5)		;salvo o valor de R8 em R5
-			mov.b		@R7, 0(R8)		;salvo o antigo valor de R5 em R8
+			mov.b		R7, 0(R8)		;salvo o antigo valor de R5 em R8
 
-			mov.b		#1, R9		;seto a flag para 1, indicando que houve troca
+			mov.b		#1, R9			;seto a flag para 1, indicando que houve troca
 
 
 
@@ -98,7 +98,8 @@ flagverifier:
 
 			jeq			majorloop
 			nop
-                                            
+
+            ret
 
 ;-------------------------------------------------------------------------------
 ; Stack Pointer definition
