@@ -23,8 +23,8 @@ StopWDT     mov.w   #WDTPW|WDTHOLD,&WDTCTL  ; Stop watchdog timer5
 ; DATA
 ;-------------------------------------------------------------------------------
 			.data
-vetor:	.byte	5, 4, 7, 3, 5, 1
-			;.byte  	24, "ESTEVAMGALVAOALBUQUERQUE"
+vetor:	;.byte	5, 4, 7, 3, 5, 1
+		.byte  	29, "ESTEVAMGALVAOLEONARDOSANDOVAL"
 
 ;-------------------------------------------------------------------------------
 ; Main loop here

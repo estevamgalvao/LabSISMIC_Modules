@@ -6,7 +6,7 @@
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_TARGET_CONFIG" value="${target_config_active_default:Module1P1}"/>
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.MRU_PROGRAM./home/estevamalbuquerque/Documentos/LabSISMIC/Module1/Module1_P1/targetConfigs/MSP430FR5994.ccxml.TI MSP430 USB1/MSP430" value="/home/estevamalbuquerque/Documentos/LabSISMIC/Module1/Module1_P1/Debug/Module1P1.out"/>
 <mapAttribute key="com.ti.ccstudio.debug.ui.displayFormats">
-<mapEntry key="TI MSP430 USB1/MSP430@##separator##@0" value="8-Bit UnSigned Int"/>
+<mapEntry key="TI MSP430 USB1/MSP430@##separator##@0" value="Character"/>
 </mapAttribute>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
 <listEntry value="/Module1P1"/>

@@ -1,7 +1,7 @@
 ******************************************************************************
                   MSP430 Linker Unix v18.1.4                   
 ******************************************************************************
->> Linked Thu Apr  4 17:32:05 2019
+>> Linked Mon Apr  8 11:22:22 2019
 
 OUTPUT FILE NAME:   <Module1P1.out>
 ENTRY POINT SYMBOL: "RESET"  address: 00004000
@@ -17,7 +17,7 @@ MEMORY CONFIGURATION
   INFOC                 00001880   00000080  00000000  00000080  RWIX
   INFOB                 00001900   00000080  00000000  00000080  RWIX
   INFOA                 00001980   00000080  00000000  00000080  RWIX
-  RAM                   00001c00   00001000  00000006  00000ffa  RWIX
+  RAM                   00001c00   00001000  0000001e  00000fe2  RWIX
   LEARAM                00002c00   00000ec8  00000000  00000ec8  RWIX
   LEASTACK              00003ac8   00000138  00000000  00000138  RWIX
   FRAM                  00004000   0000bf80  00000070  0000bf10  RWIX
@@ -120,8 +120,8 @@ section   page    origin      length       input sections
 .text      0    00004000    00000068     
                   00004000    00000068     main.obj (.text)
 
-.data      0    00001c00    00000006     
-                  00001c00    00000006     main.obj (.data)
+.data      0    00001c00    0000001e     
+                  00001c00    0000001e     main.obj (.data)
 
 .stack     0    00002c00    00000000     
 
@@ -265,9 +265,9 @@ MODULE SUMMARY
        Module             code   ro data   rw data
        ------             ----   -------   -------
     ./
-       main.obj           104    2         6      
+       main.obj           104    2         30     
     +--+------------------+------+---------+---------+
-       Total:             104    2         6      
+       Total:             104    2         30     
                                                   
     /home/estevamalbuquerque/ti/ccsv8/tools/compiler/ti-cgt-msp430_18.1.4.LTS/lib/rts430x_sc_sd_eabi.lib
        isr_trap.asm.obj   8      0         0      
@@ -312,7 +312,7 @@ MODULE SUMMARY
        Total:             8      74        0      
                                                   
     +--+------------------+------+---------+---------+
-       Grand Total:       112    76        6      
+       Grand Total:       112    76        30     
 
 
 GLOBAL SYMBOLS: SORTED ALPHABETICALLY BY Name 

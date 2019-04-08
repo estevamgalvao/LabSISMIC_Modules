@@ -2,7 +2,7 @@
 <link_info>
    <banner>MSP430 Linker Unix v18.1.4.LTS</banner>
    <copyright>Copyright (c) 2003-2018 Texas Instruments Incorporated</copyright>
-   <link_time>0x5ca669c5</link_time>
+   <link_time>0x5cab591e</link_time>
    <link_errors>0x0</link_errors>
    <output_file>Module1P1.out</output_file>
    <entry_point>
@@ -305,7 +305,7 @@
          <name>.data</name>
          <load_address>0x1c00</load_address>
          <run_address>0x1c00</run_address>
-         <size>0x6</size>
+         <size>0x1e</size>
          <input_file_ref idref="fl-2"/>
       </object_component>
       <object_component id="oc-692">
@@ -874,7 +874,7 @@
          <name>.data</name>
          <load_address>0x1c00</load_address>
          <run_address>0x1c00</run_address>
-         <size>0x6</size>
+         <size>0x1e</size>
          <contents>
             <object_component_ref idref="oc-694"/>
          </contents>
@@ -1493,7 +1493,7 @@
          <name>SEGMENT_0</name>
          <load_address>0x1c00</load_address>
          <run_address>0x1c00</run_address>
-         <size>0x6</size>
+         <size>0x1e</size>
          <flags>0x6</flags>
          <contents>
             <logical_group_ref idref="lg-1c"/>
@@ -1642,18 +1642,18 @@
          <page_id>0x0</page_id>
          <origin>0x1c00</origin>
          <length>0x1000</length>
-         <used_space>0x6</used_space>
-         <unused_space>0xffa</unused_space>
+         <used_space>0x1e</used_space>
+         <unused_space>0xfe2</unused_space>
          <attributes>RWIX</attributes>
          <usage_details>
             <allocated_space>
                <start_address>0x1c00</start_address>
-               <size>0x6</size>
+               <size>0x1e</size>
                <logical_group_ref idref="lg-1c"/>
             </allocated_space>
             <available_space>
-               <start_address>0x1c06</start_address>
-               <size>0xffa</size>
+               <start_address>0x1c1e</start_address>
+               <size>0xfe2</size>
             </available_space>
             <allocated_space>
                <start_address>0x2c00</start_address>
