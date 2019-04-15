@@ -26,6 +26,7 @@ StopWDT     mov.w   #WDTPW|WDTHOLD,&WDTCTL  ; Stop watchdog timer
 
 ;-------------------------------------------------------------------------------
 ; PRIMEIRA TENTATIVA
+
 ;
 configPins:
 			bic.b	#LOCKLPM5, &PM5CTL0		; Disable the GPIO power-on default high-impedance mode
@@ -36,6 +37,8 @@ configPins:
 
 			bis.b	#(BIT0|BIT1), &P1DIR	; defino as LEDs como saída
 			bic.b	#(BIT0|BIT1), &P1OUT 	; fazer leds começarem acesas
+
+			jmp		blink
 
 loop:
 			bit.b	#BIT5, &P5IN	;verifico se o botão está pressionado, caso esteja, o carry vai estar em 0
@@ -54,12 +57,20 @@ off:
 			nop
 
 reboteManager:
-			mov.w	#10000, R6 	;faço R6 decrementar 10000 -> 16Mhz é o clock da MSP430
+			mov.w	#0xFFFF, R6 	;faço R6 decrementar 10000 -> 16Mhz é o clock da MSP430
 								;jmp = 2 instr - dec = 1 -> 30000 instruções ---> 30000/16000000 -> 0.001875s
 loopRM:
 			dec		R6
 			jnz		loopRM
 			ret
+
+blink:
+			xor.b	#BIT0, &P1OUT
+			xor.b	#BIT1, &P1OUT
+			call	#reboteManager
+			jmp 	blink
+			nop
+
 
 
 ;-------------------------------------------------------------------------------
