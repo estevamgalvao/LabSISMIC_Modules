@@ -19,59 +19,99 @@
 RESET       mov.w   #__STACK_END,SP         ; Initialize stackpointer
 StopWDT     mov.w   #WDTPW|WDTHOLD,&WDTCTL  ; Stop watchdog timer
 
+;-------------------------------------------------------------------------------
+; DATA
+;-------------------------------------------------------------------------------
+		.data
+;VET0:	.word
+VET1:	.word	4, 9, -3, -7, 10
+VET2:	.word	7, -5, -3, -1, 0, 2, 4, 6
+
 
 ;-------------------------------------------------------------------------------
 ; Main loop here
 ;-------------------------------------------------------------------------------
+		.text
 
-;-------------------------------------------------------------------------------
-; PRIMEIRA TENTATIVA
+		mov.b		#0, R9		;R9 será minha flag -> "0" para nenhuma troca foi feita
 
-;
-configPins:
-			bic.b	#LOCKLPM5, &PM5CTL0		; Disable the GPIO power-on default high-impedance mode
+		mov		#VET1, R5
+		mov		#VET1, R8
 
-			bic.b	#(BIT5|BIT6), &P5DIR	; P5.5 e P5.6 definidos p/ entrada
-			bis.b	#(BIT5|BIT6), &P5REN 	; coloco as resistências
-			bis.b	#(BIT5|BIT6), &P5OUT 	; pullup
+		call 	#INV
 
-			bis.b	#(BIT0|BIT1), &P1DIR	; defino as LEDs como saída
-			bic.b	#(BIT0|BIT1), &P1OUT 	; fazer leds começarem apagadas
+		mov		#VET2, R5
+		mov		#VET2, R8
+		jmp		$
 
-			;jmp		blink					; caso queira que pisque, descomentar
+INV:
 
-loop:
-			bit.b	#BIT5, &P5IN	;verifico se o botão está pressionado, caso esteja, o carry vai estar em 0
-			jc		loop			;se o botão não estiver pressionado, continuo esperando ele ser pressionado
-			call 	#reboteManager	;caso o botão tenha sido pressionado, chamo a função que esperará 2ms para cuidar do rebote
-			bit.b	#BIT5, &P5IN	;após os 2ms, onde o rebote já deve ter se estabilizado, verifico se o botão ainda está sendo pressionado, caso sim, sigo o código e caio em "on", onde o botão será ligado
-			jc		off				;se o botão estiver pressionado, bit5 é 0, logo, no teste, o carry quando não identifica bit em 1, é 0 também
-									;se o carry estiver em 1, significa que o bit testado é 1
-on:
-			bis.b	#BIT0, &P1OUT
-			jmp		loop
+			mov			@R5, R6		;guardo o tamanho do vetor em R6
+			dec			R6			;decremento R6 para evitar que R8 aponte para fora do vetor
+
+			add			#2, R5		;incremento R5, fazendo-o apontar, de fato, para os elementos do vetor
+			add			#4, R8		;faço R8 sempre ficar 1 posição a frente de R5
+
+			mov			@R5, R7		;inicializar nossa variável de controle com o primeiro elemento
+
+compare:
+			cmp.w	@R5, R7		; comparo valor de R5 com R7
+			jn		troca
+
+compare2parte:
+
+			cmp.w	@R8, 0(R5)	;comparo R8 com R5
+			;mov		@R8, R10
+			;sub		R10, 0(R5)
+			jn		naoinverte		;caso R8 for menor que R5, quero troca-los de posição
 			nop
-off:
-			bic.b	#BIT0, &P1OUT
-			jmp 	loop
+inverte:
+
+			mov		@R5, R4			;variável auxiliar para não perder o valor de R5 no meio da troca
+			;inv		R4
+			mov		@R8, R10		;salvo o valor de R8 em R5
+			;inv 	R10
+			mov		R10, 0(R5)		;salvo o valor de R8 em R5
+			mov		R4, 0(R8)		;salvo o antigo valor de R5 em R8
+
+			mov		#1, R9			;seto a flag para 1, indicando que houve troca
+
+			jmp			compare3parte
 			nop
 
-reboteManager:
-			mov.w	#0xFFFF, R6 	;faço R6 decrementar 10000 -> 16Mhz é o clock da MSP430
-								;jmp = 2 instr - dec = 1 -> 30000 instruções ---> 30000/16000000 -> 0.001875s
-loopRM:
-			dec		R6
-			jnz		loopRM
-			ret
+naoinverte:
+			nop
+compare3parte:
+			add			#2, R5		;incremento os 2
+			add			#2, R8
+			dec			R6
 
-blink:
-			xor.b	#BIT0, &P1OUT
-			xor.b	#BIT1, &P1OUT
-			call	#reboteManager
-			jmp 	blink
+			jnz			inverte
+			nop
+
+			jmp			flagverifier
 			nop
 
 
+
+
+
+troca:
+			mov	@R5, R7		;troco o valor que R5 aponta, com R7
+
+			jmp 	compare2parte	;retorno ao meio da execução de menor
+			nop
+
+
+
+
+flagverifier:
+			cmp			#1, R9
+
+			jeq			INV
+			nop
+
+            ret
 
 ;-------------------------------------------------------------------------------
 ; Stack Pointer definition

@@ -23,55 +23,38 @@ StopWDT     mov.w   #WDTPW|WDTHOLD,&WDTCTL  ; Stop watchdog timer
 ;-------------------------------------------------------------------------------
 ; Main loop here
 ;-------------------------------------------------------------------------------
-
-;-------------------------------------------------------------------------------
-; PRIMEIRA TENTATIVA
-
-;
 configPins:
 			bic.b	#LOCKLPM5, &PM5CTL0		; Disable the GPIO power-on default high-impedance mode
 
 			bic.b	#(BIT5|BIT6), &P5DIR	; P5.5 e P5.6 definidos p/ entrada
+			bis.b	#(BIT0|BIT1|BIT2|BIT3|BIT4|BIT5|BIT6|BIT7), &P5IN			; garantir que as entradas de P5 estão todas 1 no início
+			;mov.b	#255, &P5IN				; EU TENTEI
 			bis.b	#(BIT5|BIT6), &P5REN 	; coloco as resistências
 			bis.b	#(BIT5|BIT6), &P5OUT 	; pullup
 
 			bis.b	#(BIT0|BIT1), &P1DIR	; defino as LEDs como saída
 			bic.b	#(BIT0|BIT1), &P1OUT 	; fazer leds começarem apagadas
 
-			;jmp		blink					; caso queira que pisque, descomentar
-
 loop:
-			bit.b	#BIT5, &P5IN	;verifico se o botão está pressionado, caso esteja, o carry vai estar em 0
-			jc		loop			;se o botão não estiver pressionado, continuo esperando ele ser pressionado
-			call 	#reboteManager	;caso o botão tenha sido pressionado, chamo a função que esperará 2ms para cuidar do rebote
-			bit.b	#BIT5, &P5IN	;após os 2ms, onde o rebote já deve ter se estabilizado, verifico se o botão ainda está sendo pressionado, caso sim, sigo o código e caio em "on", onde o botão será ligado
-			jc		off				;se o botão estiver pressionado, bit5 é 0, logo, no teste, o carry quando não identifica bit em 1, é 0 também
-									;se o carry estiver em 1, significa que o bit testado é 1
-on:
-			bis.b	#BIT0, &P1OUT
+
+           	cmp		#0x9F, &P5IN
+           	jz		onGreen
+ 			cmp		#0xDF, &P5IN
+ 			jz		onRed
+off:
+			bic.b	#(BIT0|BIT1), &P1OUT
 			jmp		loop
 			nop
-off:
-			bic.b	#BIT0, &P1OUT
+
+onGreen:
+			bis.b	#BIT1, &P1OUT
 			jmp 	loop
 			nop
 
-reboteManager:
-			mov.w	#0xFFFF, R6 	;faço R6 decrementar 10000 -> 16Mhz é o clock da MSP430
-								;jmp = 2 instr - dec = 1 -> 30000 instruções ---> 30000/16000000 -> 0.001875s
-loopRM:
-			dec		R6
-			jnz		loopRM
-			ret
-
-blink:
-			xor.b	#BIT0, &P1OUT
-			xor.b	#BIT1, &P1OUT
-			call	#reboteManager
-			jmp 	blink
+onRed:
+			bis.b	#BIT0, &P1OUT
+			jmp		loop
 			nop
-
-
 
 ;-------------------------------------------------------------------------------
 ; Stack Pointer definition
