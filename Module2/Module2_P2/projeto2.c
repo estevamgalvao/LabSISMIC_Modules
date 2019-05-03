@@ -1,6 +1,5 @@
 #include <msp430.h> 
-#include <stdlib.h>
-#include <stdio.h>
+#include <math.h>
 
 /*CCIFG = valor de TAxR se igualou ao CCRy -> o contador contou até o parâmetro do
                                               respectivo canal*/
@@ -10,16 +9,16 @@
 
 void configTimer(void) {
 
-    TA0CTL = TASSEL__SMCLK | MC__UP | TACLR;
+    TA0CTL = TASSEL__SMCLK | MC__CONTINUOUS | TACLR;
     TA0CCTL1 = 0x4000 | CAP;
 
 }
 
 
-void waitDelayUs(unsigned int delay) {
+void waitDelay(unsigned int microDelay) {
 
     TA4CTL = TASSEL__SMCLK | MC__UP | TACLR;
-    TA4CCR0 = delay;
+    TA4CCR0 = microDelay;
 
     while(!(TA4CCTL0 & CCIFG));
     TA4CCTL0 &= ~CCIFG;
@@ -29,8 +28,7 @@ void waitDelayUs(unsigned int delay) {
 void configLed(void) {
 
     P1DIR |= BIT0 | BIT1;
-    P1OUT &= ~BIT0;
-    P1OUT &= ~BIT1;
+    P1OUT &= ~(BIT0 | BIT1);
 
 }
 
@@ -43,37 +41,47 @@ int main(void)
 	WDTCTL = WDTPW | WDTHOLD;	// stop watchdog timer
 	PM5CTL0 &= ~LOCKLPM5;       // Disable the GPIO power-on default high-impedance mode
 
-
-
-	unsigned int time;
+	volatile unsigned int time;
 
 	configLed();
 
 
-	P5DIR &= ~BIT2;           //P5.2 será uma entrada
-	P5REN |= BIT2;               //ativo as resistências
-	P5OUT &= ~BIT2;               //pulldown - reajo a uma entrada em 1
-
+	P5DIR &= ~BIT2;             //P5.2 será uma entrada
 	P3DIR |= BIT3;              //P3.3 será uma saída - enviará o sinal ao HC-SR04
 
-	P1OUT |= BIT1;
-
 	P3OUT |= BIT3;              //começo a enviar o sinal ultrassom
-	configTimer();              //começo a contar o tempo que o som vai demorar pra retornar
-	waitDelayUs(100);           //continuo enviando por 100 micro segundos
-	P3DIR &= ~BIT3;              //paro de enviar o sinal ultrassom
-
-    P1OUT |= BIT0;
+	waitDelay(100);             //continuo enviando por 100 micro segundos
+	P3DIR &= ~BIT3;             //paro de enviar o sinal ultrassom
 
     while(!(P5IN & BIT2));      //espero meu pino conectado ao echo receber um sinal
-	TA0CCTL1 |= CCIFG;           //paro a contagem do tempo
+    configTimer();              //começo a contar o tempo que o som vai demorar pra retornar
+    while(P5IN & BIT2);
 
-	time = TA0CCR1;                //guardo quanto tempo levou
+    time = TA0R;             //guardo quanto tempo levou em microsegundos
+
+    unsigned int distance = 0.034 * time; //tá dando menor que 5
+
+    //distance += 15;   assim que eu descobri que tá dando menor que 5
+
+    if (distance < 20) {
+        P1OUT |= BIT0;               //ligo led vermelho
+        while(1){
+                   waitDelay(64000);
+                   P1OUT = P1OUT ^ BIT1;
+               }
+    }
+    else if (distance >= 20 || distance <= 40) {
+        P1OUT |= BIT1;              //ligo led verde
+        while(1);
+    }
+    else if (distance > 40) {
+        P1OUT |= BIT0;              //ligo led vermelho
+        P1OUT |= BIT1;              //ligo led verde
+        while(1);
+    }
+    //P1OUT &= ~BIT0;              //desligo o led vermelho
 
 
 
-
-	printf("%d microsegundos", time);
-	
 	return 0;
 }
