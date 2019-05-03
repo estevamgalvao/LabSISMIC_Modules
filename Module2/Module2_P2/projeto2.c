@@ -14,7 +14,6 @@ void configTimer(void) {
 
 }
 
-
 void waitDelay(unsigned int microDelay) {
 
     TA4CTL = TASSEL__SMCLK | MC__UP | TACLR;
@@ -32,7 +31,6 @@ void configLed(void) {
 
 }
 
-
 /**
  * main.c
  */
@@ -45,7 +43,6 @@ int main(void)
 
 	configLed();
 
-
 	P5DIR &= ~BIT2;             //P5.2 será uma entrada
 	P3DIR |= BIT3;              //P3.3 será uma saída - enviará o sinal ao HC-SR04
 
@@ -56,19 +53,13 @@ int main(void)
     while(!(P5IN & BIT2));      //espero meu pino conectado ao echo receber um sinal
     configTimer();              //começo a contar o tempo que o som vai demorar pra retornar
     while(P5IN & BIT2);
+    time = TA0R;                //guardo quanto tempo levou em microsegundos
 
-    time = TA0R;             //guardo quanto tempo levou em microsegundos
-
-    unsigned int distance = 0.034 * time; //tá dando menor que 5
-
-    //distance += 15;   assim que eu descobri que tá dando menor que 5
+    unsigned int distance = 0.034 * time;
 
     if (distance < 20) {
         P1OUT |= BIT0;               //ligo led vermelho
-        while(1){
-                   waitDelay(64000);
-                   P1OUT = P1OUT ^ BIT1;
-               }
+        while(1);
     }
     else if (distance >= 20 || distance <= 40) {
         P1OUT |= BIT1;              //ligo led verde
@@ -79,9 +70,6 @@ int main(void)
         P1OUT |= BIT1;              //ligo led verde
         while(1);
     }
-    //P1OUT &= ~BIT0;              //desligo o led vermelho
-
-
 
 	return 0;
 }
