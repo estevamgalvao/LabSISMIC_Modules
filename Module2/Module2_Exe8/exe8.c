@@ -4,7 +4,7 @@
 /**
  * main.c
  */
-int main(void)
+void main(void)
 {
 	WDTCTL = WDTPW | WDTHOLD;	// stop watchdog timer
     PM5CTL0 &= ~LOCKLPM5;       // Disable the GPIO power-on default high-impedance mode
@@ -18,5 +18,4 @@ int main(void)
         for (delay = 30000; delay > 0; delay--) {}
         P1OUT = P1OUT ^ BIT0;
     }
-	return 0;
 }
