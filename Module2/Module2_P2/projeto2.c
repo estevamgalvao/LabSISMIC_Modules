@@ -6,14 +6,12 @@
 //CIFG  = valor de TaxR deu overflow -> chegou ao teto de contagem
 //CCIE  = habilita a flag de interrupções do canal
 //TAIE  = habilita a flag de interrupções do contador
-
+/*
 void configTimer(void) {
-
     TA0CTL = TASSEL__SMCLK | MC__CONTINUOUS | TACLR;
     TA0CCTL1 = 0x4000 | CAP;
-
 }
-
+*/
 void waitDelay(unsigned int microDelay) {
 
     TA4CTL = TASSEL__SMCLK | MC__UP | TACLR;
@@ -47,29 +45,29 @@ int main(void)
 	P3DIR |= BIT3;              //P3.3 será uma saída - enviará o sinal ao HC-SR04
 
 	P3OUT |= BIT3;              //começo a enviar o sinal ultrassom
-	waitDelay(100);             //continuo enviando por 100 micro segundos
+	waitDelay(10);             //continuo enviando por 100 micro segundos
 	P3DIR &= ~BIT3;             //paro de enviar o sinal ultrassom
 
     while(!(P5IN & BIT2));      //espero meu pino conectado ao echo receber um sinal
-    configTimer();              //começo a contar o tempo que o som vai demorar pra retornar
+
+    TA0CTL = TASSEL__SMCLK | MC__CONTINUOUS | TACLR;
+
     while(P5IN & BIT2);
     time = TA0R;                //guardo quanto tempo levou em microsegundos
 
-    unsigned int distance = 0.034 * time;
-
-    if (distance < 20) {
+    if (time < 1176) {
         P1OUT |= BIT0;               //ligo led vermelho
         while(1);
     }
-    else if (distance >= 20 || distance <= 40) {
+    else if (time >= 1176 || time <= 2351) {
         P1OUT |= BIT1;              //ligo led verde
         while(1);
     }
-    else if (distance > 40) {
+    else {
         P1OUT |= BIT0;              //ligo led vermelho
         P1OUT |= BIT1;              //ligo led verde
         while(1);
     }
 
-	return 0;
+	//return 0;
 }
