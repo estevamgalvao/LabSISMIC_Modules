@@ -62,6 +62,8 @@ void main(void){
 
     __enable_interrupt();   //Habilito o General Interrupt Enable (GIE) no meu Status Register (R2)
 
+    while(1);
+
 }
 
 
@@ -85,7 +87,7 @@ __interrupt void P5_ISR (void) {
         //Lembre-se também que quem está conectado ao pino é o canal 2 do timer A1, então ele que irá reagir aos flancos do P1.3 (ECHO)
         TA1CCTL2 = CM__BOTH | CCIS_0 | CAP | CCIE;
         //CM__BOTH: Quero que ele capture em flancos de subida e de descida, pois meu ECHO vai para 1 quando emite o sinal ultrassom e para 0 quando recebe, então quero capturar nesses dois momentos
-        //CCIS_0: Capture/Compare Input Select. Basicamente, isso diz ao canal quem de onde virá o sinal dizendo que uma captura deve ser efetuada
+        //CCIS_0: Capture/Compare Input Select. Basicamente, isso diz ao canal de onde virá o sinal dizendo que uma captura deve ser efetuada
         //datasheet PAG 77 P1.3 TA1.2 = CCI2A
         //CAP: Habilito as capturas
         //CCIE: Agora sim habilito as interrupções do canal do timer
@@ -102,10 +104,17 @@ __interrupt void P5_ISR (void) {
     }
 }
 
-#pragma vector=TA1_A1_VECTOR
+#pragma vector=TIMER1_A1_VECTOR
 __interrupt void TA1C2_ISR (void) {
     switch(TA1IV) {
     case 0x04:
+        //Os bits dentro do vetor de interrupção do timer reagem às flags de interrupção dos canais
+        //A cada dois bits, começando do 0x02 para CCR1 - CCIFG, até 0x0C para CCR6 - CCIFG
+        //0x0E reage à flag de overflow do timer - TAIFG
+        //A flag de interrupção do canal 0 (TAxCCTLy - CCIFG) tem um vetor de interrupção próprio (TIMERx_A0_VECTOR)
+
+        //Dessa forma, caso eu tenha entrado nesse "case", significa que o canal 2 do meu timer, o qual está conectado aos flancos de subida e descida do ECHO, fez uma captura e como consequência, ativou a CCIFG
+        //Devo então apenas tratar os valores capturados pelo TA1CCR2 e definir as condições para as LED
         if (TA1CCTL2 & CCI) {
             timeEmition = TA1CCR2;
         }
@@ -113,13 +122,16 @@ __interrupt void TA1C2_ISR (void) {
             timeReception = TA1CCR2;
         }
 
-
+        //Esse if serve para o caso de meu flanco de subida estar no fim de uma contagem do timer e o flanco de descida estar no início de outra
+        //A princípio, essa condição não será atendida pois sempre que eu apertar o botão o timer será resetado, mas é apenas uma precaução
         if (timeReception < timeEmition) {
             timeDiff = 65536 - timeEmition + timeReception;
         }
         else {
             timeDiff = timeReception - timeEmition;
         }
+
+        //Todas as comparações são feitas com base no número de batidas de clock para atingir determinado tempo
 
         if (timeDiff < 1176) {
             P1OUT &= ~BIT1;
@@ -134,6 +146,8 @@ __interrupt void TA1C2_ISR (void) {
         else {
             P1OUT |= (BIT0 | BIT1);
         }
+        //Feito tudo que eu queria, o tempo do Bouncing provavelmente foi resolvido também, então posso reativar a flag de interrupção do botão
+        P5IE |= BIT5;
         break;
     default: break;
     }
