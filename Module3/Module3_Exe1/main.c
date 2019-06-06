@@ -19,7 +19,9 @@ void startDialogue(uint16_t address) {
     UCB2I2CSA = address;
     UCB2CTLW0 |= UCTXSTT;
 
-    while((UCB2IFG & UCTXIFG0));
+    while(!(UCB2IFG & UCTXIFG0));
+
+
 /*
     if((UCB2IFG & UCNACKIFG)) {
         // O camarada mandou um NACK
@@ -33,7 +35,11 @@ void startDialogue(uint16_t address) {
 void talk(uint8_t data) {
 
     UCB2TXBUF = data; //troquei uma ideia
-    while((UCB2IFG & UCTXIFG0)); //esperei eu terminar a ideia
+   //talvez quando eu atribuo data ao TXBUF ele automaticamente já transmita e fique vazio
+    //então a UCTXIFG0 já fique em 1
+    while(!(UCB2IFG & UCTXIFG0)); //esperei eu terminar a ideia
+                                   //está pra sempre nesse loop
+
 
 }
 
@@ -80,10 +86,10 @@ void configB2(void) { //Configurar o Mestre
 
     //Por que não devo dar a DIR para os pinos de SDA e SLC?
     //P7SSEL pág 108
-    //Selecionando o P7.0 para UCB0SDA
+    //Selecionando o P7.0 para UCB2SDA
     P7SEL1 &= ~BIT0;
     P7SEL0 |= BIT0;
-    //Selecionando o P7.1 para UCB0SCL
+    //Selecionando o P7.1 para UCB2SCL
     P7SEL1 &= ~BIT1;
     P7SEL0 |= BIT1;
 
@@ -96,16 +102,13 @@ void configB2(void) { //Configurar o Mestre
     UCB2CTLW0 |= UCSWRST;
 
     UCB2CTLW0 |= UCMST_1 | UCMODE_3 | UCSSEL__SMCLK | UCTR;
-    UCB2I2COA0 = 0x0012; //pq o Own Adress 0 para o mestre? -> na verdade a flag UCOAEN define se é endereço de escravo ou mestre
+    UCB2I2COA0 = 0x0012 | UCOAEN__ENABLE; //pq o Own Adress 0 para o mestre? -> na verdade a flag UCOAEN define se é endereço de escravo ou mestre
 
-    //UCB0SDA - P1.6
-    //UCB0SCL - P1.7 pag 12
     UCB2BRW = 10; //Selecionar o Baud-Rate - por que? e por que 10K?
-
-    UCB2CTLW0 &= ~UCSWRST;
 
     UCB2IE |= UCNACKIE;
 
+    UCB2CTLW0 &= ~UCSWRST;
 }
 
 
@@ -128,8 +131,6 @@ int main(void)
 
     stopDialogue();
 
-    waitDelay(32767);
-
     if (UCB1RXBUF == 0x0055) {
         while(1) {
             P1OUT ^= BIT0;
@@ -148,7 +149,8 @@ int main(void)
 
     return 0;
 }
-
+//preso no loop
+//led verde interrupção só funciona quando eu faço
 
 
 
@@ -201,6 +203,7 @@ __interrupt void UCB2_ISR(void) {
         while((UCB2IFG & UCTXIFG0)); //Aguardo novamente o buffer ficar vazio para os casos em que a interrupção ocorreu no meio de uma transmissão
         UCB2CTLW0 |= UCTXSTP; //envio um STOP
         while(UCB2CTLW0 & UCTXSTP); //espero o STOP ser enviado com sucesso
+        P1OUT |= BIT0;
         break;
 
 
