@@ -1,6 +1,8 @@
 #include <msp430.h> 
 #include <stdint.h>
 
+
+volatile int i;
 /**
  * main.c
  */
@@ -47,8 +49,9 @@ void talk(uint8_t data) {
 void stopDialogue(void) {
 
     UCB2CTLW0 |= UCTXSTP; //envio um STOP
+    UCB2IFG &= ~UCTXIFG;
     while(UCB2CTLW0 & UCTXSTP); //espero o STOP ser enviado com sucesso
-
+    //while(!(UCB2IFG & UCTXIFG0));
 }
 
 
@@ -102,7 +105,7 @@ void configB2(void) { //Configurar o Mestre
     UCB2CTLW0 |= UCSWRST;
 
     UCB2CTLW0 |= UCMST_1 | UCMODE_3 | UCSSEL__SMCLK | UCTR;
-    UCB2I2COA0 = 0x0012 | UCOAEN__ENABLE; //pq o Own Adress 0 para o mestre? -> na verdade a flag UCOAEN define se é endereço de escravo ou mestre
+    UCB2I2COA0 = 0x0012;//pq o Own Adress 0 para o mestre? -> na verdade a flag UCOAEN define se é endereço de escravo ou mestre
 
     UCB2BRW = 10; //Selecionar o Baud-Rate - por que? e por que 10K?
 
@@ -132,11 +135,58 @@ int main(void)
     stopDialogue();
 
     if (UCB1RXBUF == 0x0055) {
-        while(1) {
+        i = 10;
+        while(i > 0) {
             P1OUT ^= BIT0;
             waitDelay(8191);
+            i--;
         }
     }
+
+    P1OUT &= ~BIT0;
+    waitDelay(65528);
+
+    startDialogue(0x0034);
+
+    talk(0x0024);
+
+    stopDialogue();
+
+    if (UCB1RXBUF == 0x0024) {
+        i = 10;
+            while(i > 0) {
+                P1OUT ^= BIT1;
+                waitDelay(8191);
+                i--;
+            }
+        }
+
+    P1OUT &= ~BIT1;
+    waitDelay(65528);
+
+    startDialogue(0x0034);
+    talk(0x0072);
+    //startDialogue(0x0034);
+    talk(0x0086); //não sobreescreveu
+                   //parece só sobreescrever depois de 1 stop
+                   //talvez não seja possível sobreescrever o buffer
+                    //apenas com o stop, porque ele talvez limpe o buffer
+
+    stopDialogue(); //aparentemente o while esperando enviar o stop nunca é satisfeito
+
+    P1OUT |= BIT0;
+
+
+    if (UCB1RXBUF == 0x0086) {
+        i = 10;
+        while(i > 0) {
+                P1OUT ^= BIT1;
+                P1OUT ^= BIT0;
+                waitDelay(8191);
+                i--;
+            }
+        }
+
 /*
     if (UCB1RXBUF == 0x0055) {
         P1OUT |= BIT1;
@@ -175,7 +225,7 @@ __interrupt void UCB1_ISR(void) {
     case USCI_I2C_UCRXIFG1:  break;     // Vector 18: RXIFG1
     case USCI_I2C_UCTXIFG1:  break;     // Vector 20: TXIFG1
     case USCI_I2C_UCRXIFG0:             // Vector 22: RXIFG0
-        P1OUT |= BIT1;
+        //P1OUT |= BIT1;
 
         break;
     case USCI_I2C_UCTXIFG0:  break;           // Vector 24: TXIFG0
