@@ -56,8 +56,6 @@ void UART_config (uint32_t baudrate, uint8_t bitOrder, uint8_t parity, uint8_t n
 	UCA3MCTLW = (brDiv & 0x07) << 8;           //e finalmente, salvo os 3 bits menos significativos (nesse exemplo seriam o 1 = 001) em MCTLW
 	                                           //Desloco 8 bits pois UCBRS, na MSP430FR5994, fica entre os bits 15-8 // PÁG 786 userGuide
 
-	UCA3IE |= (UCRXIE | UCTXIE);               //Habilito as interrupções dos buffers de transmissão e recepção
-
 	//Portabilidade dos pinos 6.1 e 6.0 // PAG 107 datasheet
 	//PINO 6.0 UCA3TXD
 	//PINO 6.1 UCA3RXD
@@ -65,4 +63,7 @@ void UART_config (uint32_t baudrate, uint8_t bitOrder, uint8_t parity, uint8_t n
 	P6SEL1 &= ~(BIT0|BIT1);
 
 	UCA3CTLW0 &= ~UCSWRST;                     //Desabilito o modo de configuração do registrador
+	
+	UCA3IE |= UCRXIE;               	  //Habilito as interrupções dos buffers de transmissão e recepção
+
 }
