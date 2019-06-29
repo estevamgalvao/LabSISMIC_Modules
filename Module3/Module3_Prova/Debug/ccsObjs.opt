@@ -1,0 +1,1 @@
+"./main.obj" "./lib/adc12.obj" "./lib/clock.obj" "./lib/i2c.obj" "./lib/lcd.obj" "../lnk_msp430fr5994.cmd" -llibmpu_init.a -llibmath.a -llibc.a 
