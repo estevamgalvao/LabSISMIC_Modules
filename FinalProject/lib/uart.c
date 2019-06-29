@@ -50,10 +50,10 @@ void UART_config (uint32_t baudrate, uint8_t bitOrder, uint8_t parity, uint8_t n
 
 	UCA3CTLW0 |= UCSSEL_3;              //Sempre seleciono o SMCLK pois tem a melhor combinação com os baudrates suportados pelo dispositivo HC-05
 
-	uint32_t brDiv = (1000000  << 3)/baudrate; //descolo em 3bits (* 2^3) o 10^6 e faço a divisão pelo baudrate
+	uint32_t brDiv = (1000000  << 8)/baudrate; //descolo em 8bits (* 2^8) o 10^6 e faço a divisão pelo baudrate
 	                                           //dessa forma, é como se eu fizesse o número 104,16 em binário ficar 1041,6
-	UCA3BRW = brDiv >> 3;                      //então eu salvo a parte inteira dessa divisão, dividindo por 2^3, em BRW
-	UCA3MCTLW = (brDiv & 0x07) << 8;           //e finalmente, salvo os 3 bits menos significativos (nesse exemplo seriam o 1 = 001) em MCTLW
+	UCA3BRW = brDiv >> 8;                      //então eu salvo a parte inteira dessa divisão, dividindo por 2^3, em BRW
+	UCA3MCTLW = (brDiv & 0xFF) << 8;           //e finalmente, salvo os 3 bits menos significativos (nesse exemplo seriam o 1 = 001) em MCTLW
 	                                           //Desloco 8 bits pois UCBRS, na MSP430FR5994, fica entre os bits 15-8 // PÁG 786 userGuide
 
 	//Portabilidade dos pinos 6.1 e 6.0 // PAG 107 datasheet
