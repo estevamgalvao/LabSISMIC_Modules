@@ -17,12 +17,19 @@
 uint8_t password[] = {0x41, 0x42, 0x43, 0x44};  //Vetor que administrará a senha para ascender o LED
 uint8_t counter = 0;                            //Contador para saber quantos caracteres o usuário acertou
                                                 //Dessa forma não preciso de outro vetor para guardar as tentativas do usuário
+
+uint8_t mode        = SIMULTANEOUS;
+uint8_t pulse       = 0x00;
+uint8_t LED         = 0x00;
+uint8_t modePulse   = INCREMENT;
+
+
+/*
 uint8_t mode  = ALTERNATE;
-uint8_t pulse = 0;
-uint8_t modePulse = INCREMENT;
+
 uint8_t dutyCycle = 1;
 uint8_t step = 1;
-
+*/
 
 /**
  * main.c
@@ -72,21 +79,23 @@ __interrupt void UAC3ISR(void) {
         P1OUT &= ~(BIT0 | BIT1);
         break;
     case 0x46:
+        TA1_config(MODE1HZ, 50);
+        break;
+    case 0x48:
+        mode = !mode;
+        //pulse = 0;
+        break;
+    case 0x49:
         if (pulse) {
             pulse = !pulse;
             TA1_config(MODE1HZ, 50);
         }
         else {
             pulse = !pulse;
-            //TA1_update(MODE50HZ, 1);
-            TA1CCR0 = 665;
-            TA1CCR1 = 6;
+            TA1_config(MODE50HZ, 1);
         }
-    case 0x47:
-        TA1_config(MODE1HZ, 50);
         break;
-    case 0x48:
-        mode = !mode;
+
     default: break;
     }
 /*
@@ -112,67 +121,60 @@ __interrupt void TA1_ISR (void) {
         //caso entre nesse case, significa que o timer contou até CCR1
 
 
-        if (mode) {                         //ALTERNADO
+        if (pulse) {
+
+            P1OUT |= BIT1;
+            P1OUT |= BIT0;
+
+
+            if (modePulse){             //INCREMENTAR
+                if ( ( ( (TA1CCR0) / 100) + TA1CCR1) < TA1CCR0) {
+                    TA1CCR1 += (TA1CCR0)/100;
+                    //TA1_update(MODE50HZ, dutyCycle + step);
+                }
+                else {
+                    modePulse = !modePulse;
+                }
+            }
+            else {
+                if ( ( ( (TA1CCR1 - ( (TA1CCR0)/100) ) ) > 0) &&
+                     ( ( (TA1CCR1 - ( (TA1CCR0)/100) ) ) < (TA1CCR0) ) ) {
+
+                    TA1CCR1 -= (TA1CCR0)/100;
+                   // TA1_update(MODE50HZ, dutyCycle - step);
+                 }
+                 else {
+                     modePulse = !modePulse;
+                     LED = 0xFF;
+                 }
+             }
+        }
+
+
+
+
+        else if (mode) {                        //ALTERNADO
             P1OUT |= BIT0;
             P1OUT &= ~BIT1;
-            if(pulse) {
-                if (modePulse){             //INCREMENTAR
-                    if ( ( ( (TA1CCR0) / 100) + TA1CCR1) < TA1CCR0) {
-                        TA1CCR1 += (TA1CCR0)/100;
-                        //TA1_update(MODE50HZ, dutyCycle + step);
-                    }
-                    else {
-                        modePulse = !modePulse;
-                    }
-                }
-                else {
-                    if ( ( (int16_t *) ( (TA1CCR1 - ( (TA1CCR0)/100) ) ) > 0) &&
-                         ( (int16_t *) ( (TA1CCR1 - ( (TA1CCR0)/100) ) ) < (int16_t *) (TA1CCR0) ) ) {
 
-                        TA1CCR1 -= (TA1CCR0)/100;
-                       // TA1_update(MODE50HZ, dutyCycle - step);
-                     }
-                     else {
-                         modePulse = !modePulse;
-                     }
-                 }
-            }
+
+
+
+
+
+
+
+
         }
-        else {                              //SIMULTANEO
+        else {                                  //SIMULTANEO
             P1OUT |= (BIT0 | BIT1);
-            if(pulse) {
-                if (modePulse){             //INCREMENTAR
-
-                    if ( ( ( (TA1CCR0) / 100) + TA1CCR1) < TA1CCR0) {
-                        TA1CCR1 += (TA1CCR0)/100;
-                        //TA1_update(MODE50HZ, dutyCycle + step);
-                    }
-                    else {
-                        modePulse = !modePulse;
-                    }
-                }
-                else {
-
-                    if ( ( (int16_t *) ( (TA1CCR1 - ( (TA1CCR0)/100) ) ) > 0) &&
-                         ( (int16_t *) ( (TA1CCR1 - ( (TA1CCR0)/100) ) ) < (int16_t *) (TA1CCR0) ) ) {
-
-                        TA1CCR1 -= (TA1CCR0)/100;
-                        //TA1_update(MODE50HZ, dutyCycle - step);
-                     }
-                     else {
-                         modePulse = !modePulse;
-                     }
-                 }
-            }
         }
         break;
-
 
     default:
         break;
     }
 }
-
 
 #pragma vector=TIMER1_A0_VECTOR
 __interrupt void TA1C0_ISR (void) {
