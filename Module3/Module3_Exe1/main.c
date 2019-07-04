@@ -105,13 +105,13 @@ void configB2(void) { //Configurar o Mestre
     UCB2CTLW0 |= UCSWRST;
 
     UCB2CTLW0 |= UCMST_1 | UCMODE_3 | UCSSEL__SMCLK | UCTR;
-    UCB2I2COA0 = 0x0012;//pq o Own Adress 0 para o mestre? -> na verdade a flag UCOAEN define se é endereço de escravo ou mestre
+    UCB2I2COA0 = UCOAEN__ENABLE | 0x0012;//pq o Own Adress 0 para o mestre? -> na verdade a flag UCOAEN define se é endereço de escravo ou mestre
 
     UCB2BRW = 10; //Selecionar o Baud-Rate - por que? e por que 10K?
 
-    UCB2IE |= UCNACKIE;
-
     UCB2CTLW0 &= ~UCSWRST;
+
+    UCB2IE |= UCNACKIE;
 }
 
 
@@ -166,6 +166,18 @@ int main(void)
 
     startDialogue(0x0034);
     talk(0x0072);
+
+    if (UCB1RXBUF == 0x0072) {
+        i = 10;
+        while(i > 0) {
+            P1OUT ^= BIT1;
+            waitDelay(8191);
+            i--;
+        }
+    }
+
+    P1OUT &= ~BIT1;
+
     //startDialogue(0x0034);
     talk(0x0086); //não sobreescreveu
                    //parece só sobreescrever depois de 1 stop
@@ -186,16 +198,6 @@ int main(void)
                 i--;
             }
         }
-
-/*
-    if (UCB1RXBUF == 0x0055) {
-        P1OUT |= BIT1;
-    }
-    else {
-        P1OUT |= BIT0;
-    }
-*/
-
 
     return 0;
 }
