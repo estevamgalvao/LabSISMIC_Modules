@@ -1,19 +1,28 @@
 #include <msp430.h>
+#include <stdint.h>
 #include "lib/uart.h"
 #include "lib/timer.h"
 
 
-#define ALTERNATE   1
-#define CONTINUOUS  0
-#define MODE1HZ     1
-#define MODE2HZ     2
-#define MODE5HZ     5
-#define MODE10HZ    10
+#define ALTERNATE       0xFF
+#define SIMULTANEOUS    0x00
+#define INCREMENT       0xFF
+#define DECREMENT       0x00
+#define MODE1HZ         1
+#define MODE2HZ         2
+#define MODE5HZ         5
+#define MODE10HZ        10
+#define MODE50HZ        50
 
 uint8_t password[] = {0x41, 0x42, 0x43, 0x44};  //Vetor que administrará a senha para ascender o LED
 uint8_t counter = 0;                            //Contador para saber quantos caracteres o usuário acertou
                                                 //Dessa forma não preciso de outro vetor para guardar as tentativas do usuário
-uint8_t mode = ALTERNATE;
+uint8_t mode  = ALTERNATE;
+uint8_t pulse = 0;
+uint8_t modePulse = INCREMENT;
+uint8_t dutyCycle = 1;
+uint8_t step = 1;
+
 
 /**
  * main.c
@@ -29,14 +38,14 @@ int main(void)
     P1OUT &= ~(BIT0 | BIT1);                        //Inicio as LED apagadas
 	
     //Configurar UART -> UCA3 6.1 RX 6.0 TX
-    UART_config(9600, LSB, WITHOUT, 0, BITS8);     //Baudrate de 38400bps, LSB first, sem paridade, 1 bit de STOP e 8BITS por comunicação
+    UART_config(9600, LSB, WITHOUT, 0, BITS8);     //Baudrate de 9600bps, LSB first, sem paridade, 1 bit de STOP e 8BITS por comunicação
 
     __enable_interrupt();                           //Habilito o General Interrupt Enable (GIE) no meu Status Register (R2)
 
     //UCA3IE |= (UCRXIE);                           //Tive de habilitar as interrupções do RXBUF e TXBUF também na main porque mesmo habilitando
                                                     //na chamada da função UART_config, os bits não estavam sendo "setados"
                                                     // |-> o erro era que só devíamos habilitar a interrupção após zerar a flag de configuração
-    configTA1(MODE1HZ, 50);
+    TA1_config(MODE1HZ, 50);
 
     while(1);
 }
@@ -47,24 +56,37 @@ __interrupt void UAC3ISR(void) {
 	// A leitura 
     switch(UCA3RXBUF) {
     case 0x41:
-        updateTA1(MODE1HZ, 50);
+        TA1_update(MODE1HZ, 50);
         break;
     case 0x42:
-        updateTA1(MODE2HZ, 50);
+        TA1_update(MODE2HZ, 50);
         break;
     case 0x43:
-        updateTA1(MODE5HZ, 50);
+        TA1_update(MODE5HZ, 50);
         break;
     case 0x44:
-        updateTA1(MODE10HZ, 50);
+        TA1_update(MODE10HZ, 50);
         break;
     case 0x45:
         TA1CTL &= ~MC__UP;
         P1OUT &= ~(BIT0 | BIT1);
         break;
     case 0x46:
-        configTA1(MODE1HZ, 50);
+        if (pulse) {
+            pulse = !pulse;
+            TA1_config(MODE1HZ, 50);
+        }
+        else {
+            pulse = !pulse;
+            //TA1_update(MODE50HZ, 1);
+            TA1CCR0 = 665;
+            TA1CCR1 = 6;
+        }
+    case 0x47:
+        TA1_config(MODE1HZ, 50);
         break;
+    case 0x48:
+        mode = !mode;
     default: break;
     }
 /*
@@ -88,14 +110,64 @@ __interrupt void TA1_ISR (void) {
     switch(TA1IV) {
     case 0x02:
         //caso entre nesse case, significa que o timer contou até CCR1
+
+
         if (mode) {                         //ALTERNADO
             P1OUT |= BIT0;
             P1OUT &= ~BIT1;
+            if(pulse) {
+                if (modePulse){             //INCREMENTAR
+                    if ( ( ( (TA1CCR0) / 100) + TA1CCR1) < TA1CCR0) {
+                        TA1CCR1 += (TA1CCR0)/100;
+                        //TA1_update(MODE50HZ, dutyCycle + step);
+                    }
+                    else {
+                        modePulse = !modePulse;
+                    }
+                }
+                else {
+                    if ( ( (int16_t *) ( (TA1CCR1 - ( (TA1CCR0)/100) ) ) > 0) &&
+                         ( (int16_t *) ( (TA1CCR1 - ( (TA1CCR0)/100) ) ) < (int16_t *) (TA1CCR0) ) ) {
+
+                        TA1CCR1 -= (TA1CCR0)/100;
+                       // TA1_update(MODE50HZ, dutyCycle - step);
+                     }
+                     else {
+                         modePulse = !modePulse;
+                     }
+                 }
+            }
         }
-        else {                              //CONTINUO
+        else {                              //SIMULTANEO
             P1OUT |= (BIT0 | BIT1);
+            if(pulse) {
+                if (modePulse){             //INCREMENTAR
+
+                    if ( ( ( (TA1CCR0) / 100) + TA1CCR1) < TA1CCR0) {
+                        TA1CCR1 += (TA1CCR0)/100;
+                        //TA1_update(MODE50HZ, dutyCycle + step);
+                    }
+                    else {
+                        modePulse = !modePulse;
+                    }
+                }
+                else {
+
+                    if ( ( (int16_t *) ( (TA1CCR1 - ( (TA1CCR0)/100) ) ) > 0) &&
+                         ( (int16_t *) ( (TA1CCR1 - ( (TA1CCR0)/100) ) ) < (int16_t *) (TA1CCR0) ) ) {
+
+                        TA1CCR1 -= (TA1CCR0)/100;
+                        //TA1_update(MODE50HZ, dutyCycle - step);
+                     }
+                     else {
+                         modePulse = !modePulse;
+                     }
+                 }
+            }
         }
         break;
+
+
     default:
         break;
     }
@@ -109,7 +181,7 @@ __interrupt void TA1C0_ISR (void) {
         P1OUT &= ~BIT0;
         P1OUT |= BIT1;
     }
-    else {                                   //CONTINUO
+    else {                                   //SIMULTANEO
         P1OUT &= ~(BIT0 | BIT1);
     }
 }
