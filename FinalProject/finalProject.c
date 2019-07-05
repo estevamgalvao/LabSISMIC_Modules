@@ -20,17 +20,7 @@ uint8_t counter = 0;                            //Contador para saber quantos ca
 
 uint8_t mode        = SIMULTANEOUS;
 uint8_t pulse       = 0x00;
-uint8_t LED         = 0x00;
 uint8_t modePulse   = INCREMENT;
-
-
-/*
-uint8_t mode  = ALTERNATE;
-
-uint8_t dutyCycle = 1;
-uint8_t step = 1;
-*/
-
 /**
  * main.c
  */
@@ -81,36 +71,23 @@ __interrupt void UAC3ISR(void) {
     case 0x46:
         TA1_config(MODE1HZ, 50);
         break;
-    case 0x48:
+    case 0x47:
         mode = !mode;
-        //pulse = 0;
         break;
-    case 0x49:
+    case 0x48:
         if (pulse) {
             pulse = !pulse;
             TA1_config(MODE1HZ, 50);
         }
         else {
             pulse = !pulse;
+            mode = SIMULTANEOUS;
             TA1_config(MODE50HZ, 1);
         }
         break;
 
     default: break;
     }
-/*
-	if (UCA3RXBUF != password[counter]) {   //Se a enésima tentativa (counter) do usuário está incorreta, se estiver, reinicio a contagem
-	    counter = 0;                        //e dou toggle no LED vermelho indicando o erro
-	    //P1OUT ^= BIT0;
-	}
-	else {
-	    counter++;                          //Se o byte enviado foi correto, incremento o counter indicando que +1 byte foi acertado
-	}
-	if (counter == 4) {                     //No momento em que o 4º byte correto for lido, counter será = 4 e então devo ascender o LED verde
-	    //P1OUT ^= BIT1;                      //indicando que a senha correta foi inserida. Após isso zero o counter para receber uma nova tentativa
-	    counter = 0;
-	}
-*/
 }
 
 
@@ -119,18 +96,14 @@ __interrupt void TA1_ISR (void) {
     switch(TA1IV) {
     case 0x02:
         //caso entre nesse case, significa que o timer contou até CCR1
-
-
         if (pulse) {
 
             P1OUT |= BIT1;
             P1OUT |= BIT0;
 
-
-            if (modePulse){             //INCREMENTAR
+            if (modePulse){                                                     //INCREMENTAR
                 if ( ( ( (TA1CCR0) / 100) + TA1CCR1) < TA1CCR0) {
                     TA1CCR1 += (TA1CCR0)/100;
-                    //TA1_update(MODE50HZ, dutyCycle + step);
                 }
                 else {
                     modePulse = !modePulse;
@@ -138,33 +111,18 @@ __interrupt void TA1_ISR (void) {
             }
             else {
                 if ( ( ( (TA1CCR1 - ( (TA1CCR0)/100) ) ) > 0) &&
-                     ( ( (TA1CCR1 - ( (TA1CCR0)/100) ) ) < (TA1CCR0) ) ) {
-
-                    TA1CCR1 -= (TA1CCR0)/100;
-                   // TA1_update(MODE50HZ, dutyCycle - step);
+                     ( ( (TA1CCR1 - ( (TA1CCR0)/100) ) ) < (TA1CCR0) ) ) {      //Se o próximo decremento ainda for maior que 0 e menor que TA1CCR0 -> unsigned
+                    TA1CCR1 -= (TA1CCR0)/100;                                   //posso realizar o próximo decremento
                  }
                  else {
                      modePulse = !modePulse;
-                     LED = 0xFF;
                  }
              }
         }
 
-
-
-
         else if (mode) {                        //ALTERNADO
             P1OUT |= BIT0;
             P1OUT &= ~BIT1;
-
-
-
-
-
-
-
-
-
         }
         else {                                  //SIMULTANEO
             P1OUT |= (BIT0 | BIT1);
