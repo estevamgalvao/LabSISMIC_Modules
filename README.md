@@ -1,5 +1,5 @@
 # Practical Projects of Microprocessed Systems Course
-The course seeks to understand the functioning of microcontrollers in general and their resources (timers, LEDS, operation profiles, etc).
+The course aims at the understanding of the functioning of microcontrollers in general and their resources (timers, LEDS, operation profiles, etc).
 Hence, at this semester, 2019.1, we will do all practical projects using the MSP430FR5994 microcontroller.
 Finally, this course is divided into 3 modules and a final project.
 
